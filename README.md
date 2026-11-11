@@ -1,43 +1,33 @@
-# 云吞插件模板
+# AstrBot（AI 聊天机器人）
 
-开发流程见[插件开发指南](https://github.com/wontonapp/wonton-docs/blob/main/develop.md)。
+把上游 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 做成云吞插件：一个多平台聊天机器人，
+在飞书、钉钉、QQ 官方机器人、Telegram、Discord、Slack 这些聊天软件里 @ 它，它就替家里的人回答、查资料、调用云吞里的工具。
 
-这是一个能安装的示例插件 `app.example.hello`：使用 nginx 官方镜像显示问候页，经网关的 `sso: proxy` 注入用户名，页面显示“你好，<用户名>”。示例没有应用账号、持久化数据或 MCP 工具。
+![AstrBot 标志](icon.svg)
 
-## 示例文件
+标志来自上游 AstrBot（AstrBot 项目的商标），来源、许可和商标说明见 [NOTICE](NOTICE)。
 
-| 路径 | 内容 |
-| --- | --- |
-| `docker-compose.yml` | 示例清单、nginx 服务和三个 `configs` |
-| `web/default.conf.template` | nginx 配置，启用 SSI 回显用户名并提供健康检查入口；只放行来自核心地址（`${WONTON_CORE_ADDRESS}`）的请求，其余来源 403 |
-| `web/index.html` | 问候页 |
-| `web/tokens.css` | 页面主题变量的后备值 |
-| `tabs/` | 示例主页的应用页面图标 |
-| `screenshots/home.png` | 商店详情页的示例截图 |
-| `scripts/smoke-probes.sh` | 检查真实页面和网关注入身份的插件探针 |
+## 第一次用
 
-从模板创建自己的插件后，替换示例清单、网页和素材；具体步骤见[写插件](https://github.com/wontonapp/wonton-docs/blob/main/develop.md#写插件)。
+1. 打开插件详情页，点开「登录密码」复制密码。
+2. 打开 AstrBot 网页，用用户名 `astrbot` 和这个密码登录；登录后在面板的账户设置里改掉它。
+3. 模型默认走云吞的模型网关，不用填 key；没接上网关时，在面板的「模型供应商」里加自己的服务商和 key。
 
-## 对着别的栈跑探针
+## 接聊天软件
 
-`probes`、`api`、`session` 按 `.wonton/.env` 的 `WONTON_BASE_DOMAIN` 拼核心地址，`up` 起的栈自己写这个键。插件装进别人的栈、或者对着已有环境排查时，把那套栈的基础域名写进 `.wonton/.env`，不要只按实例名猜地址：实例名只是资源名前缀，网关按 Host 认域名，拼错了会回“没有安装”。
+在面板的「平台适配」里添加平台。不需要公网回调地址的长连接平台都能用：
+飞书（长连接）、钉钉（Stream 模式）、QQ 官方机器人（WebSocket 模式）、Telegram（轮询）、Discord、Slack（Socket 模式）。
+企业微信等靠回调接收消息的平台收不到回调：插件不向公网暴露端口，这是云吞的隔离设计，不是配置问题。
 
-```bash
-WONTON_BASE_DOMAIN=wonton.localhost
-```
+## 工具和出网
 
-## 核心镜像
+- 面板里 MCP 服务列表中的 `wonton` 指向云吞的工具总线，机器人能调用家里其他应用提供的工具；
+  敏感工具会在云吞里弹确认卡片。面板里还可以自己加别的 MCP 服务。
+- 插件要访问外网（连接平台服务器、下载插件市场插件和更新）时走云吞的出网代理，不用在 AstrBot 里另配代理。
 
-检查和冒烟默认用套件里的核心镜像（`ghcr.io/wontonapp/wonton-core:main`）；要固定别的核心镜像，在仓库 Settings → Variables 设 `WONTON_CORE_IMAGE`，手动触发“检查”时填的 `core-image` 输入优先。
+## 数据
 
-## 更新开发套件
+配置、对话记录和面板密码都在插件数据目录（应用内的 `data/cmd_config.json`、`data_v4.db`、`mcp_server.json`）。
+卸载并删除数据后，登录密码会重新生成为插件详情页里显示的新密码。
 
-```bash
-scripts/dev.sh kit-update
-```
-
-在从模板新建的插件仓库中更新套件；本仓库是套件源头，执行时只提示并退出。版本、可选引用和自定义脚本约定见[开发指南](https://github.com/wontonapp/wonton-docs/blob/main/develop.md#更新开发套件)。
-
-## 图标
-
-`icon.svg` 是本仓库原创线条图标，按本仓库 MIT 许可证分发，见 [NOTICE](NOTICE)。
+上游的部署文档和功能说明：https://astrbot.app 。
